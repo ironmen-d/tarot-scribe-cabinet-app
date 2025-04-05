@@ -8,6 +8,7 @@ export type Reading = {
     unit: "minutes" | "hours" | "days";
   };
   categoryId: string;
+  color?: string;
 };
 
 export type Category = {
@@ -22,7 +23,7 @@ export type Client = {
   birthdate: string | null;
   phone: string;
   messenger: "WhatsApp" | "Telegram" | "Другое";
-  appointments: Appointment[];
+  appointments: string[];
 };
 
 export type Appointment = {

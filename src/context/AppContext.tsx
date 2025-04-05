@@ -216,12 +216,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           birthdate: null,
           phone: appointment.clientPhone,
           messenger: appointment.clientMessenger,
-          appointments: [],
+          appointments: [newAppointment.id],
         };
         
         return {
           ...prev,
           clients: [...prev.clients, newClient],
+          appointments: [...prev.appointments, newAppointment],
+        };
+      } else if (clientExists) {
+        // Update client's appointments list
+        return {
+          ...prev,
+          clients: prev.clients.map(c => 
+            c.id === appointment.clientId
+              ? { ...c, appointments: [...c.appointments, newAppointment.id] }
+              : c
+          ),
           appointments: [...prev.appointments, newAppointment],
         };
       }
@@ -236,19 +247,68 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateAppointment = (id: string, appointment: Partial<Omit<Appointment, "id">>) => {
-    setState((prev) => ({
-      ...prev,
-      appointments: prev.appointments.map((a) =>
+    setState((prev) => {
+      const updatedAppointments = prev.appointments.map((a) =>
         a.id === id ? { ...a, ...appointment } : a
-      ),
-    }));
+      );
+
+      // If the status changed from pending to completed, update client's appointments
+      const oldAppointment = prev.appointments.find(a => a.id === id);
+      const newAppointment = updatedAppointments.find(a => a.id === id);
+      
+      if (oldAppointment && newAppointment && 
+          !oldAppointment.completed && newAppointment.completed &&
+          newAppointment.clientId) {
+        
+        // Update the client's appointments array
+        const updatedClients = prev.clients.map(c => {
+          if (c.id === newAppointment.clientId) {
+            // Make sure the appointment ID is only added once
+            if (!c.appointments.includes(id)) {
+              return {
+                ...c,
+                appointments: [...c.appointments, id]
+              };
+            }
+          }
+          return c;
+        });
+        
+        return {
+          ...prev,
+          appointments: updatedAppointments,
+          clients: updatedClients
+        };
+      }
+
+      return {
+        ...prev,
+        appointments: updatedAppointments
+      };
+    });
   };
 
   const deleteAppointment = (id: string) => {
-    setState((prev) => ({
-      ...prev,
-      appointments: prev.appointments.filter((a) => a.id !== id),
-    }));
+    setState((prev) => {
+      const appointmentToDelete = prev.appointments.find(a => a.id === id);
+      
+      if (appointmentToDelete && appointmentToDelete.clientId) {
+        return {
+          ...prev,
+          appointments: prev.appointments.filter((a) => a.id !== id),
+          clients: prev.clients.map(c => 
+            c.id === appointmentToDelete.clientId
+              ? { ...c, appointments: c.appointments.filter(appId => appId !== id) }
+              : c
+          )
+        };
+      }
+      
+      return {
+        ...prev,
+        appointments: prev.appointments.filter((a) => a.id !== id)
+      };
+    });
   };
 
   // Helper functions

@@ -8,7 +8,7 @@ import AppointmentDialog from "../appointments/AppointmentDialog";
 import ImportClientsDialog from "./ImportClientsDialog";
 
 const ClientsList: React.FC = () => {
-  const { clients, deleteClient } = useAppContext();
+  const { clients, deleteClient, getAppointmentsByClientId } = useAppContext();
   const [searchTerm, setSearchTerm] = useState("");
   const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
   const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
@@ -99,37 +99,42 @@ const ClientsList: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredClients.map((client) => (
-                <tr key={client.id} className="border-b hover:bg-secondary/10">
-                  <td className="py-3 px-4">{client.name}</td>
-                  <td className="py-3 px-4">{client.phone}</td>
-                  <td className="py-3 px-4">{client.messenger}</td>
-                  <td className="py-3 px-4">{client.appointments.length}</td>
-                  <td className="py-3 px-4 text-right space-x-1">
-                    <button
-                      onClick={() => handleAddAppointment(client)}
-                      className="p-1 rounded-full hover:bg-blue-100 text-blue-600 inline-flex items-center justify-center"
-                      title="Создать запись"
-                    >
-                      <Calendar size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleEditClient(client)}
-                      className="p-1 rounded-full hover:bg-secondary inline-flex items-center justify-center"
-                      title="Редактировать"
-                    >
-                      <Edit size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteClient(client.id)}
-                      className="p-1 rounded-full hover:bg-red-100 text-red-600 inline-flex items-center justify-center"
-                      title="Удалить"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {filteredClients.map((client) => {
+                const clientAppointments = getAppointmentsByClientId(client.id);
+                const appointmentCount = clientAppointments.length;
+                
+                return (
+                  <tr key={client.id} className="border-b hover:bg-secondary/10">
+                    <td className="py-3 px-4">{client.name}</td>
+                    <td className="py-3 px-4">{client.phone}</td>
+                    <td className="py-3 px-4">{client.messenger}</td>
+                    <td className="py-3 px-4">{appointmentCount}</td>
+                    <td className="py-3 px-4 text-right space-x-1">
+                      <button
+                        onClick={() => handleAddAppointment(client)}
+                        className="p-1 rounded-full hover:bg-blue-100 text-blue-600 inline-flex items-center justify-center"
+                        title="Создать запись"
+                      >
+                        <Calendar size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleEditClient(client)}
+                        className="p-1 rounded-full hover:bg-secondary inline-flex items-center justify-center"
+                        title="Редактировать"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClient(client.id)}
+                        className="p-1 rounded-full hover:bg-red-100 text-red-600 inline-flex items-center justify-center"
+                        title="Удалить"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

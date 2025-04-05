@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { useAppContext } from "../../context/AppContext";
 import { Appointment, Client } from "../../types/models";
 import { v4 as uuidv4 } from "uuid";
 import { calculateDeadline, extractNameAndBirthdate, formatDate } from "../../utils/dateUtils";
+import { format } from "date-fns";
 
 interface AppointmentDialogProps {
   isOpen: boolean;
@@ -29,6 +29,7 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
     getReadingsByCategoryId,
     addClient,
     getClientByPhone,
+    getClient,
   } = useAppContext();
 
   const [viewMode, setViewMode] = useState<"view" | "edit">(mode);
@@ -53,6 +54,14 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
   const [confirmClose, setConfirmClose] = useState(false);
   const [showAutoFill, setShowAutoFill] = useState(false);
   const [autoFillText, setAutoFillText] = useState("");
+
+  const MALE_NAMES = [
+    'александр', 'сергей', 'андрей', 'дмитрий', 'алексей', 
+    'михаил', 'евгений', 'иван', 'максим', 'артем',
+    'владимир', 'павел', 'николай', 'константин', 'игорь',
+    'виктор', 'роман', 'денис', 'антон', 'тимур', 'олег',
+    'никита', 'кирилл', 'вадим', 'валерий', 'василий'
+  ];
 
   useEffect(() => {
     if (appointment) {
@@ -81,10 +90,25 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
     } else if (initialDate) {
       setFormData(prev => ({
         ...prev,
-        requestDate: initialDate.toISOString().split("T")[0],
+        requestDate: format(initialDate, "yyyy-MM-dd"),
       }));
     }
-  }, [appointment, initialDate, clients]);
+  }, [appointment, initialDate, clients, getReadingsByCategoryId]);
+
+  useEffect(() => {
+    if (formData.clientId) {
+      const client = getClient(formData.clientId);
+      if (client) {
+        setFormData(prev => ({
+          ...prev,
+          clientName: client.name,
+          clientBirthdate: client.birthdate || "",
+          clientPhone: client.phone,
+          clientMessenger: client.messenger
+        }));
+      }
+    }
+  }, [formData.clientId, getClient]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -142,7 +166,6 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
 
     let clientId = formData.clientId;
     
-    // Create new client if needed
     if (!clientId && formData.clientName && formData.clientPhone) {
       const existingClient = getClientByPhone(formData.clientPhone);
       
@@ -190,17 +213,77 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
     }));
   };
 
-  const handleAutoFill = () => {
-    const { name, birthdate } = extractNameAndBirthdate(autoFillText);
+  const isMale = (text: string, name: string | null): boolean => {
+    const maleKeywords = /(мужчин|парень|сын|папа|муж\b|отец|брат|дед)/i;
+    if (maleKeywords.test(text)) return true;
     
-    if (name || birthdate) {
-      setFormData(prev => ({
-        ...prev,
-        clientName: name || prev.clientName,
-        clientBirthdate: birthdate ? formatDate(birthdate) : prev.clientBirthdate,
-        request: autoFillText,
-      }));
+    if (name) {
+      const firstName = name.split(' ')[0].toLowerCase();
+      return MALE_NAMES.includes(firstName);
     }
+    
+    return false;
+  };
+
+  const extractName = (text: string): string | null => {
+    const cleanedText = text.replace(/^(Здравствуйте|Привет|Добрый день|Добрый вечер)[,!.\s]+/i, '');
+    
+    const nameMatch = cleanedText.match(/^([А-ЯЁ][а-яё]+)(?:\s+[А-ЯЁ][а-яё]+)?/);
+    return nameMatch ? nameMatch[0] : null;
+  };
+
+  const extractBirthdate = (text: string): string | null => {
+    let dateMatch = text.match(/(\d{1,2})[./](\d{1,2})[./](\d{2,4})/);
+    
+    if (!dateMatch) {
+      dateMatch = text.match(/(\d{2})(\d{2})(\d{4})/);
+    }
+    
+    if (!dateMatch) {
+      dateMatch = text.match(/(\d{1,2})\s+(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)\s+(\d{4})/i);
+    }
+    
+    if (!dateMatch) return null;
+    
+    let day, month, year;
+    
+    if (dateMatch[2].length > 2) {
+      const months: {[key: string]: string} = {
+        'января': '01', 'февраля': '02', 'марта': '03', 'апреля': '04',
+        'мая': '05', 'июня': '06', 'июля': '07', 'августа': '08',
+        'сентября': '09', 'октября': '10', 'ноября': '11', 'декабря': '12'
+      };
+      day = dateMatch[1].padStart(2, '0');
+      month = months[dateMatch[2].toLowerCase()];
+      year = dateMatch[3];
+    } else {
+      day = dateMatch[1].padStart(2, '0');
+      month = dateMatch[2].padStart(2, '0');
+      year = dateMatch[3].length === 2 ? `20${dateMatch[3]}` : dateMatch[3];
+    }
+    
+    const date = new Date(`${year}-${month}-${day}`);
+    if (isNaN(date.getTime())) return null;
+    
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleAutoFill = () => {
+    if (!autoFillText) return;
+    
+    const name = extractName(autoFillText);
+    
+    let birthdate = null;
+    if (name && !isMale(autoFillText, name)) {
+      birthdate = extractBirthdate(autoFillText);
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      clientName: name || prev.clientName,
+      clientBirthdate: birthdate || prev.clientBirthdate,
+      request: autoFillText,
+    }));
     
     setShowAutoFill(false);
   };
