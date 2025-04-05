@@ -1,13 +1,47 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState } from "react";
+import MainLayout from "../components/layout/MainLayout";
+import Calendar from "../components/calendar/Calendar";
+import AppointmentsList from "../components/appointments/AppointmentsList";
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState<"pending" | "completed">("pending");
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <MainLayout>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Calendar />
+        </div>
+        
+        <div className="space-y-4">
+          <div className="flex border-b">
+            <button
+              className={`px-4 py-2 font-medium text-sm ${
+                activeTab === "pending"
+                  ? "border-b-2 border-primary text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => setActiveTab("pending")}
+            >
+              Невыполненные
+            </button>
+            <button
+              className={`px-4 py-2 font-medium text-sm ${
+                activeTab === "completed"
+                  ? "border-b-2 border-primary text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => setActiveTab("completed")}
+            >
+              Выполненные
+            </button>
+          </div>
+          
+          <AppointmentsList type={activeTab} />
+        </div>
       </div>
-    </div>
+    </MainLayout>
   );
 };
 
