@@ -1,8 +1,16 @@
 
 import React, { useState, useEffect } from "react";
-import { X } from "lucide-react";
 import { useAppContext } from "../../context/AppContext";
 import { Reading } from "../../types/models";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface ReadingDialogProps {
   isOpen: boolean;
@@ -58,21 +66,16 @@ const ReadingDialog: React.FC<ReadingDialogProps> = ({
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-card rounded-lg shadow-lg max-w-md w-full">
-        <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="text-xl font-semibold">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-xl">
             {reading ? "Редактирование расклада" : "Новый расклад"}
-          </h2>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-secondary">
-            <X size={20} />
-          </button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="p-6">
+        <form onSubmit={handleSubmit} className="py-4">
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">
@@ -128,24 +131,19 @@ const ReadingDialog: React.FC<ReadingDialogProps> = ({
             </div>
           </div>
           
-          <div className="mt-6 flex justify-end space-x-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border rounded-md hover:bg-secondary"
-            >
-              Отмена
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
-            >
+          <DialogFooter className="mt-6">
+            <DialogClose asChild>
+              <Button type="button" variant="outline">
+                Отмена
+              </Button>
+            </DialogClose>
+            <Button type="submit">
               {reading ? "Сохранить" : "Создать"}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

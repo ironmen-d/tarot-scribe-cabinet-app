@@ -160,6 +160,7 @@ const CategoriesList: React.FC = () => {
         </div>
       )}
 
+      {/* Dialogs */}
       <CategoryDialog
         isOpen={isCategoryDialogOpen}
         onClose={() => setIsCategoryDialogOpen(false)}
