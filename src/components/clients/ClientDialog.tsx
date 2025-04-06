@@ -35,7 +35,7 @@ const ClientDialog: React.FC<ClientDialogProps> = ({
     }
   }, [client, isOpen]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const clientData = {
@@ -45,13 +45,16 @@ const ClientDialog: React.FC<ClientDialogProps> = ({
       messenger,
     };
     
-    if (client) {
-      updateClient(client.id, clientData);
-    } else {
-      addClient(clientData);
+    try {
+      if (client) {
+        await updateClient(client.id, clientData);
+      } else {
+        await addClient(clientData);
+      }
+      onClose();
+    } catch (error) {
+      console.error("Error saving client:", error);
     }
-    
-    onClose();
   };
 
   if (!isOpen) return null;

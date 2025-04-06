@@ -11,6 +11,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
 
 interface ReadingDialogProps {
   isOpen: boolean;
@@ -67,7 +68,7 @@ const ReadingDialog: React.FC<ReadingDialogProps> = ({
     }
   }, [reading, isOpen]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const readingData = {
@@ -80,13 +81,27 @@ const ReadingDialog: React.FC<ReadingDialogProps> = ({
       color
     };
     
-    if (reading) {
-      updateReading(reading.id, readingData);
-    } else {
-      addReading(categoryId, readingData);
+    try {
+      if (reading) {
+        await updateReading(reading.id, readingData);
+      } else {
+        await addReading(categoryId, readingData);
+      }
+      
+      toast({
+        title: reading ? "Расклад обновлен" : "Расклад создан",
+        description: `Расклад "${name}" успешно ${reading ? "обновлен" : "создан"}.`,
+      });
+      
+      onClose();
+    } catch (error) {
+      console.error("Ошибка при сохранении расклада:", error);
+      toast({
+        title: "Ошибка при сохранении расклада",
+        description: "Пожалуйста, проверьте соединение и попробуйте снова.",
+        variant: "destructive",
+      });
     }
-    
-    onClose();
   };
 
   return (
