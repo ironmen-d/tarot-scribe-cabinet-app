@@ -4,6 +4,7 @@ import { useAppContext } from "../../context/AppContext";
 import { Appointment, Client } from "../../types/models";
 import { calculateDeadline, formatDate } from "../../utils/dateUtils";
 import { format } from "date-fns";
+import { toast } from "react-toastify";
 
 interface AppointmentDialogProps {
   isOpen: boolean;
@@ -64,7 +65,6 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
     'никита', 'кирилл', 'вадим', 'валерий', 'василий'
   ];
 
-  // Initialize form with appointment data when available
   useEffect(() => {
     if (appointment) {
       const client = clients.find(c => c.id === appointment.clientId);
@@ -90,7 +90,6 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
         setAvailableReadings(getReadingsByCategoryId(appointment.categoryId));
       }
     } else if (initialClient) {
-      // Initialize form with initialClient data when provided
       setFormData(prev => ({
         ...prev,
         clientId: initialClient.id,
@@ -109,7 +108,6 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
     }
   }, [appointment, initialDate, initialClient, clients, getReadingsByCategoryId]);
 
-  // Update form data when client is selected
   useEffect(() => {
     if (formData.clientId) {
       const client = getClient(formData.clientId);
@@ -176,7 +174,7 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
     setFormData(prev => ({ ...prev, [name]: checked }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     let clientId = formData.clientId;
@@ -187,13 +185,23 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
       if (existingClient) {
         clientId = existingClient.id;
       } else {
-        const newClient = addClient({
-          name: formData.clientName,
-          birthdate: formData.clientBirthdate || null,
-          phone: formData.clientPhone,
-          messenger: formData.clientMessenger,
-        });
-        clientId = newClient.id;
+        try {
+          const newClient = await addClient({
+            name: formData.clientName,
+            birthdate: formData.clientBirthdate || null,
+            phone: formData.clientPhone,
+            messenger: formData.clientMessenger,
+          });
+          clientId = newClient.id;
+        } catch (error) {
+          console.error("Ошибка при добавлении клиента:", error);
+          toast({
+            variant: "destructive",
+            title: "Ошибка при добавлении клиента",
+            description: "Пожалуйста, проверьте соединение и попробуйте снова."
+          });
+          return;
+        }
       }
     }
     

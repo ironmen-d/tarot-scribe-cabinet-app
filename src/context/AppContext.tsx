@@ -210,14 +210,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const catReadingsResponse = await fetch(`${API_URL}?sheet=Категории и расклады`);
         const catReadingsData = await catReadingsResponse.json();
         
-        const categoriesData = catReadingsData.filter((item: any) => item.Тип === "категория");
-        const readingsData = catReadingsData.filter((item: any) => item.Тип === "расклад");
-        
-        const mappedCategories = categoriesData.map(mapSheetCategoryToCategory);
-        const mappedReadings = readingsData.map(mapSheetReadingToReading);
-        
-        setCategories(mappedCategories);
-        setReadings(mappedReadings);
+        // Проверяем, что catReadingsData - это массив
+        if (Array.isArray(catReadingsData)) {
+          const categoriesData = catReadingsData.filter(item => item.Тип === "категория");
+          const readingsData = catReadingsData.filter(item => item.Тип === "расклад");
+          
+          const mappedCategories = categoriesData.map(mapSheetCategoryToCategory);
+          const mappedReadings = readingsData.map(mapSheetReadingToReading);
+          
+          setCategories(mappedCategories);
+          setReadings(mappedReadings);
+        } else {
+          console.error("Данные категорий и раскладов не являются массивом:", catReadingsData);
+          toast({
+            variant: "destructive",
+            title: "Ошибка формата данных",
+            description: "Полученные данные категорий и раскладов имеют неверный формат."
+          });
+        }
 
         // Загрузка записей
         const appointmentsResponse = await fetch(`${API_URL}?sheet=Записи`);
