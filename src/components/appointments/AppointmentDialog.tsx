@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { useAppContext } from "../../context/AppContext";
 import { Appointment, Client } from "../../types/models";
-import { v4 as uuidv4 } from "uuid";
-import { calculateDeadline, extractNameAndBirthdate, formatDate } from "../../utils/dateUtils";
+import { calculateDeadline, formatDate } from "../../utils/dateUtils";
 import { format } from "date-fns";
 
 interface AppointmentDialogProps {
@@ -12,6 +10,7 @@ interface AppointmentDialogProps {
   onClose: () => void;
   appointment?: Appointment;
   initialDate?: Date;
+  initialClient?: Client;
   mode?: "view" | "edit";
 }
 
@@ -20,6 +19,7 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
   onClose,
   appointment,
   initialDate,
+  initialClient,
   mode = "edit",
 }) => {
   const {
@@ -89,13 +89,25 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
       if (appointment.categoryId) {
         setAvailableReadings(getReadingsByCategoryId(appointment.categoryId));
       }
-    } else if (initialDate) {
+    } else if (initialClient) {
+      // Initialize form with initialClient data when provided
+      setFormData(prev => ({
+        ...prev,
+        clientId: initialClient.id,
+        clientName: initialClient.name,
+        clientBirthdate: initialClient.birthdate || "",
+        clientPhone: initialClient.phone,
+        clientMessenger: initialClient.messenger,
+      }));
+    }
+    
+    if (initialDate) {
       setFormData(prev => ({
         ...prev,
         requestDate: format(initialDate, "yyyy-MM-dd"),
       }));
     }
-  }, [appointment, initialDate, clients, getReadingsByCategoryId]);
+  }, [appointment, initialDate, initialClient, clients, getReadingsByCategoryId]);
 
   // Update form data when client is selected
   useEffect(() => {
