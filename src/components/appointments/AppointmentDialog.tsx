@@ -4,7 +4,7 @@ import { useAppContext } from "../../context/AppContext";
 import { Appointment, Client } from "../../types/models";
 import { calculateDeadline, formatDate } from "../../utils/dateUtils";
 import { format } from "date-fns";
-import { toast } from "react-toastify";
+import { toast } from "@/hooks/use-toast";
 
 interface AppointmentDialogProps {
   isOpen: boolean;
@@ -196,9 +196,9 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
         } catch (error) {
           console.error("Ошибка при добавлении клиента:", error);
           toast({
-            variant: "destructive",
             title: "Ошибка при добавлении клиента",
-            description: "Пожалуйста, проверьте соединение и попробуйте снова."
+            description: "Пожалуйста, проверьте соединение и попробуйте снова.",
+            variant: "destructive",
           });
           return;
         }
@@ -669,7 +669,7 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
                     className="mr-2"
                   />
                   <label htmlFor="completed" className="text-sm">
-                    Отметить как выполненный
+                    Отметить как выполн��нный
                   </label>
                 </div>
                 
