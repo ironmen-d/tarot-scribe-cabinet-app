@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { useAppContext } from "../../context/AppContext";
@@ -63,6 +64,7 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
     'никита', 'кирилл', 'вадим', 'валерий', 'василий'
   ];
 
+  // Initialize form with appointment data when available
   useEffect(() => {
     if (appointment) {
       const client = clients.find(c => c.id === appointment.clientId);
@@ -95,6 +97,7 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
     }
   }, [appointment, initialDate, clients, getReadingsByCategoryId]);
 
+  // Update form data when client is selected
   useEffect(() => {
     if (formData.clientId) {
       const client = getClient(formData.clientId);

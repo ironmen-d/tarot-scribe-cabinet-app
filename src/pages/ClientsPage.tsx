@@ -6,7 +6,9 @@ import ClientsList from "../components/clients/ClientsList";
 const ClientsPage = () => {
   return (
     <MainLayout>
-      <ClientsList />
+      <div className="mt-8">
+        <ClientsList />
+      </div>
     </MainLayout>
   );
 };

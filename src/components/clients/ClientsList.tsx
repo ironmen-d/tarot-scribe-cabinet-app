@@ -45,7 +45,7 @@ const ClientsList: React.FC = () => {
   };
 
   return (
-    <div className="bg-card shadow-sm rounded-lg border p-6">
+    <div className="bg-card shadow-sm rounded-lg border p-6 mt-8">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 space-y-4 md:space-y-0">
         <h2 className="text-2xl font-semibold">База клиентов</h2>
         
@@ -156,6 +156,7 @@ const ClientsList: React.FC = () => {
           isOpen={isAppointmentDialogOpen}
           onClose={() => setIsAppointmentDialogOpen(false)}
           initialDate={new Date()}
+          initialClient={selectedClient}
         />
       )}
     </div>
